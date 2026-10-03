@@ -1,6 +1,6 @@
 @echo off
 rem Build the user-mode parts with Visual Studio's C compiler.
-rem   build.cmd [x64|x86]
+rem   build.cmd [x64|x86|arm64]
 setlocal
 set ARCH=%1
 if "%ARCH%"=="" set ARCH=x64
@@ -9,7 +9,11 @@ if defined VSCMD_VER goto :have_env
 set "VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
 for /f "usebackq delims=" %%i in (`"%VSWHERE%" -latest -products * -property installationPath`) do set "VSROOT=%%i"
 if not defined VSROOT echo Visual Studio was not found. & exit /b 1
-call "%VSROOT%\VC\Auxiliary\Build\vcvarsall.bat" %ARCH% >nul 2>nul || exit /b 1
+rem ARM64 is cross-compiled unless the build machine is itself ARM64.
+set VCARCH=%ARCH%
+if /i "%ARCH%"=="arm64" if /i not "%PROCESSOR_ARCHITECTURE%"=="ARM64" set VCARCH=x64_arm64
+call "%VSROOT%\VC\Auxiliary\Build\vcvarsall.bat" %VCARCH% >nul 2>nul
+if not exist "%VCToolsInstallDir%lib\%ARCH%\libcmt.lib" echo The Visual Studio C++ build tools for %ARCH% are not installed. & exit /b 1
 :have_env
 
 set OUT=%~dp0build\%ARCH%
@@ -18,7 +22,10 @@ set CFLAGS=/nologo /W4 /WX /O2 /MT /D_CRT_SECURE_NO_WARNINGS /Fo"%OUT%\\"
 set CORE=%~dp0core\datafab.c %~dp0core\scsi.c %~dp0core\bot.c
 
 cl %CFLAGS% /Fe"%OUT%\test_core.exe" %CORE% %~dp0tests\fake_device.c %~dp0tests\test_core.c || exit /b 1
+rem A cross-compiled test program cannot run on the build machine.
+if /i "%ARCH%"=="arm64" if /i not "%PROCESSOR_ARCHITECTURE%"=="ARM64" goto :skip_tests
 "%OUT%\test_core.exe" || exit /b 1
+:skip_tests
 
 if exist "%~dp0tool\cli.c" (
     cl %CFLAGS% /Fe"%OUT%\meusbpca.exe" %CORE% %~dp0service\winusb_io.c %~dp0tool\cli.c ^

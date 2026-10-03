@@ -8,14 +8,13 @@ The adapter only speaks ATA, so it works with ATA flash cards, PC Card hard
 drives and CompactFlash cards in a PC Card sleeve. Modems, network cards and
 linear memory cards cannot work with it.
 
-## Status
+## Tested
 
-| Part | Windows | State |
+| Part | Tested on | What was tested |
 |---|---|---|
-| `meusbpca.exe` command-line imaging tool | Vista and later (WinUSB) | Working (read and write); tested on Windows 11 x64 |
-| `meusbpca-svc.exe` drive-letter service (iSCSI) | Vista and later | Working (read, write, card removal/insertion) on Windows 11 x64; untested on older Windows |
-| `meusbpca.sys` kernel filter | 98SE, ME, 2000, XP (x86 and x64), 32-bit Vista/7/8 | Logging-only spike, not yet compiled or tested |
-| Tool and service on ARM64 | Windows 11 ARM64 | Planned; untested, no ARM64 build yet |
+| `meusbpca.exe` command-line imaging tool | Windows 11 x64 | Identifying a card, reading a whole card, writing a whole card |
+| `meusbpca-svc.exe` drive-letter service (iSCSI) | Windows 11 x64 | Reading and writing files through the drive letter, read-only mode, card removal and insertion |
+| `core/` protocol library | x86 and x64 builds | Host tests against a simulated adapter |
 
 ## Platform support
 
@@ -44,24 +43,23 @@ follows the Linux `usb-storage` DataFab subdriver.
   `meusbpca-svc.exe` runs a small iSCSI target on `127.0.0.1`. Windows' built-in
   iSCSI initiator connects to it and the card appears as a removable drive. No
   kernel driver is involved, so nothing needs signing and Secure Boot stays on.
-- On 98SE through 32-bit Windows 8, the plan is a lower filter under Microsoft's
-  `usbstor.sys` that makes the adapter look like a standard mass-storage device.
+- On 98SE through 32-bit Windows 8.1 and on XP x64, the design is a lower filter
+  under Microsoft's `usbstor.sys` that makes the adapter look like a standard
+  mass-storage device.
 
 ## Building
 
-Needs Visual Studio with the C++ tools and a Windows SDK.
+| What | Runs on | Toolchain | Command |
+|---|---|---|---|
+| Tool and service, x64 | Vista x64 through 11 | Visual Studio (C++ tools) and a Windows SDK | `build.cmd` |
+| Tool and service, x86 | 32-bit Vista through 10 | Same | `build.cmd x86` |
+| Tool and service, ARM64 | 11 on ARM64 | Same, plus the MSVC ARM64 build tools component | `build.cmd arm64` |
+| Kernel filter, x86 | 98SE through 32-bit 8.1 | Windows Server 2003 SP1 DDK, Windows 2000 build environment | `build -cZ` in `driver\` |
+| Kernel filter, x64 | XP x64 | Windows Server 2003 SP1 DDK, x64 build environment | `build -cZ` in `driver\` |
 
-```
-build.cmd          (x64)
-build.cmd x86
-```
+`build.cmd` also builds and runs the core tests, and puts `meusbpca.exe` and
+`meusbpca-svc.exe` in `build\<arch>\`.
 
-This builds and runs the core tests, then produces `build\<arch>\meusbpca.exe`
-and `build\<arch>\meusbpca-svc.exe`.
-
-The kernel filter in `driver/` is built separately with a Windows 2000-era DDK
-(`build -cZ` in the Windows 2000 build environment of the Windows Server 2003
-SP1 DDK).
 
 ## Using it on Windows Vista and later
 
