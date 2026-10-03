@@ -12,9 +12,32 @@ linear memory cards cannot work with it.
 
 | Part | Windows | State |
 |---|---|---|
-| `meusbpca.exe` command-line imaging tool | Vista and later (WinUSB) | Working; tested on Windows 11 x64 |
-| `meusbpca-svc.exe` drive-letter service (iSCSI) | Vista and later | Reading works on Windows 11 x64; writing not yet tested on a real card; untested on older Windows |
+| `meusbpca.exe` command-line imaging tool | Vista and later (WinUSB) | Working (read and write); tested on Windows 11 x64 |
+| `meusbpca-svc.exe` drive-letter service (iSCSI) | Vista and later | Working (read, write, card removal/insertion) on Windows 11 x64; untested on older Windows |
 | `meusbpca.sys` kernel filter | 98SE, ME, 2000, XP, 32-bit Vista/7/8 | Logging-only spike, not yet compiled or tested |
+
+## Platform support
+
+| Windows | Arch | Implementation | Runs in | Microsoft components it relies on | Prerequisites | Card appears as | State |
+|---|---|---|---|---|---|---|---|
+| 98SE | x86 | `meusbpca.sys` lower filter under `USBSTOR.SYS` | Kernel (WDM, loaded by NTKERN) | Windows ME's `USBSTOR.SYS`, `USBNTMAP.SYS`, `USBMPHLP.PDR` | ME USB storage files from an ME disc, or NUSB | Removable USB drive | Planned; logging spike only, not compiled |
+| ME | x86 | Same `meusbpca.sys` | Kernel (WDM, loaded by NTKERN) | In-box USB storage stack | None | Removable USB drive | Planned; logging spike only, not compiled |
+| 2000, XP | x86 | Same `meusbpca.sys` | Kernel (WDM) | In-box `usbstor.sys` and `disk.sys` | None; unsigned driver warning at install | Removable USB drive | Planned; logging spike only, not compiled |
+| Vista, 7, 8, 8.1 | x86 | Same `meusbpca.sys`; the iSCSI service (x86 build) is an alternative | Kernel, or user mode for the service | In-box `usbstor.sys`, or WinUSB and the iSCSI initiator | None for the filter; Zadig for the service | Removable USB drive, or removable iSCSI disk | Filter planned; service built, untested |
+| Vista, 7, 8, 8.1 | x64 | `meusbpca-svc.exe` iSCSI service | User mode | WinUSB, Microsoft iSCSI initiator | WinUSB bound with Zadig | Removable iSCSI disk | Built, untested |
+| 10 | x86 | `meusbpca-svc.exe` iSCSI service (x86 build) | User mode | WinUSB, Microsoft iSCSI initiator | WinUSB bound with Zadig | Removable iSCSI disk | Built, untested |
+| 10, 11 | x64 | `meusbpca-svc.exe` iSCSI service | User mode | WinUSB, Microsoft iSCSI initiator | WinUSB bound with Zadig | Removable iSCSI disk | Working on Windows 11 (read, write, card removal/insertion); Windows 10 untested |
+| 11 | ARM64 | None | n/a | n/a | n/a | n/a | Not planned: no ARM64 build, and Zadig's WinUSB binding is expected to fail there |
+| XP | x64 | None | n/a | n/a | n/a | n/a | Not planned: the kernel filter is x86 only |
+
+The `meusbpca.exe` imaging tool runs wherever the adapter is bound to WinUSB:
+Vista and later, in the same x86 and x64 builds as the service.
+
+Kernel code signing is why the split falls where it does. 32-bit Windows up to
+8.1 loads an unsigned kernel driver, so one filter binary can serve 98SE
+through 8.1. 64-bit Windows requires a signed kernel driver, so there the
+adapter stays on Microsoft's own signed drivers and all project code runs in
+user mode.
 
 ## How it works
 
@@ -85,7 +108,7 @@ Windows ME one: install `USBSTOR.SYS`, `USBNTMAP.SYS`, `USBMPHLP.PDR` and their
 INFs from a Windows ME disc, or the NUSB pack, before installing this driver.
 This project does not distribute Microsoft files.
 
-## Licence
+## License
 
 GPL-2.0-or-later; see `COPYING`. The protocol implementation is derived from
 `drivers/usb/storage/datafab.c` in the Linux kernel, (c) 2000 Jimmie Mayfield

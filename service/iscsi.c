@@ -5,7 +5,7 @@
  * Kept deliberately small: no authentication, no digests, error recovery
  * level 0, a command window of one, and solicited data only (InitialR2T=Yes)
  * apart from immediate data. Each connection gets a thread; SCSI execution is
- * serialised because there is one card behind it.
+ * serialized because there is one card behind it.
  */
 #include <winsock2.h>
 #include <ws2tcpip.h>
