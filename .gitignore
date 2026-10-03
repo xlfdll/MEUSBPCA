@@ -1,0 +1,4 @@
+build/
+*.img
+driver/obj*/
+*.obj

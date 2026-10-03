@@ -1,0 +1,47 @@
+; SPDX-License-Identifier: GPL-2.0-or-later
+;
+; Binds Microsoft's in-box WinUSB driver to the Toshiba MEUSBPCA adapter, for
+; meusbpca.exe and meusbpca-svc.exe on Windows Vista and later.
+;
+; This INF has no signed catalog, so 64-bit Windows refuses to install it as
+; it stands. The easy route is Zadig (https://zadig.akeo.ie): pick
+; "USB To PCMCIA" (07C4 A006), choose WinUSB, Install Driver. Zadig generates
+; and self-signs an equivalent package.
+
+[Version]
+Signature="$Windows NT$"
+Class=USBDevice
+ClassGUID={88BAE032-5A81-49F0-BC3D-A4FF138216D6}
+Provider=%Provider%
+DriverVer=10/03/2026,0.1.0.0
+
+[Manufacturer]
+%Manufacturer%=Models,NTx86,NTamd64,NTarm64
+
+[Models.NTx86]
+%DeviceName%=Install, USB\VID_07C4&PID_A006
+
+[Models.NTamd64]
+%DeviceName%=Install, USB\VID_07C4&PID_A006
+
+[Models.NTarm64]
+%DeviceName%=Install, USB\VID_07C4&PID_A006
+
+[Install]
+Include=winusb.inf
+Needs=WINUSB.NT
+
+[Install.Services]
+Include=winusb.inf
+Needs=WINUSB.NT.Services
+
+[Install.HW]
+AddReg=Install.HW.AddReg
+
+[Install.HW.AddReg]
+HKR,,DeviceInterfaceGUIDs,0x00010000,"{6C3F2A91-5B7E-4D0A-9E44-07C4A0060001}"
+
+[Strings]
+Provider="MEUSBPCA project"
+Manufacturer="Toshiba"
+DeviceName="Toshiba MEUSBPCA USB to PC Card adapter"
