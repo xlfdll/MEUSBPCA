@@ -8,7 +8,7 @@ The adapter only speaks ATA, so it works with ATA flash cards, PC Card hard
 drives and CompactFlash cards in a PC Card sleeve. Modems, network cards and
 linear memory cards cannot work with it.
 
-## Tested
+## Current Status
 
 | Part | Tested on | What was tested |
 |---|---|---|
@@ -16,7 +16,7 @@ linear memory cards cannot work with it.
 | `meusbpca-svc.exe` drive-letter service (iSCSI) | Windows 11 x64 | Reading and writing files through the drive letter, read-only mode, card removal and insertion |
 | `core/` protocol library | x86 and x64 builds | Host tests against a simulated adapter |
 
-## Platform support
+## Platform Support
 
 | Windows | Form | Prerequisites |
 |---|---|---|
@@ -31,7 +31,22 @@ linear memory cards cannot work with it.
 The `meusbpca.exe` imaging tool runs on Vista and later, with the same WinUSB
 prerequisite as the service.
 
-## How it works
+### Why Two Forms
+
+The split follows Windows' kernel driver signing rules.
+
+- **Kernel filter driver** where Windows loads an unsigned kernel driver: 98SE,
+  ME, 2000, XP (including XP x64) and 32-bit Vista through 8.1. A filter under
+  Microsoft's own USB storage driver is the most direct route there, and those
+  older systems have neither WinUSB nor an iSCSI initiator built in.
+- **iSCSI service** where a kernel driver must be signed: 64-bit Windows from
+  Vista on, and ARM64. Windows 10 and 11 go further and require the signature
+  to come from Microsoft. The service avoids the requirement entirely: it runs
+  in user mode on top of two drivers Microsoft already ships and signs, WinUSB
+  and the iSCSI initiator, so it installs with Secure Boot on. Windows 10 and
+  11 use the service on every architecture.
+
+### How It Works
 
 The adapter uses a vendor protocol: an 8-byte command carrying the ATA
 registers, followed by 512-byte sectors on two bulk endpoints. The protocol
@@ -47,11 +62,11 @@ follows the Linux `usb-storage` DataFab subdriver.
   under Microsoft's `usbstor.sys` that makes the adapter look like a standard
   mass-storage device.
 
-## Building
+## Development
 
 | What | Runs on | Toolchain | Command |
 |---|---|---|---|
-| Tool and service, x64 | Vista x64 through 11 | Visual Studio (C++ tools) and a Windows SDK | `build.cmd` |
+| Tool and service, x64 | Vista x64 through 11 | Visual Studio (C++ tools) and a Windows SDK | `build.cmd x64` |
 | Tool and service, x86 | 32-bit Vista through 10 | Same | `build.cmd x86` |
 | Tool and service, ARM64 | 11 on ARM64 | Same, plus the MSVC ARM64 build tools component | `build.cmd arm64` |
 | Kernel filter, x86 | 98SE through 32-bit 8.1 | Windows Server 2003 SP1 DDK, Windows 2000 build environment | `build -cZ` in `driver\` |
@@ -60,8 +75,9 @@ follows the Linux `usb-storage` DataFab subdriver.
 `build.cmd` also builds and runs the core tests, and puts `meusbpca.exe` and
 `meusbpca-svc.exe` in `build\<arch>\`.
 
+## Platform Notes
 
-## Using it on Windows Vista and later
+### Windows Vista and Later
 
 1. Bind the adapter to WinUSB. Run [Zadig](https://zadig.akeo.ie), select
    **USB To PCMCIA** (`07C4 A006`), choose **WinUSB** and install.
@@ -92,15 +108,16 @@ follows the Linux `usb-storage` DataFab subdriver.
 
 Eject the drive in Explorer before pulling a card you have written to.
 
-## Windows 98SE
+### Windows 98SE
 
 98SE has no generic USB storage driver. The kernel filter relies on the
 Windows ME one: install `USBSTOR.SYS`, `USBNTMAP.SYS`, `USBMPHLP.PDR` and their
 INFs from a Windows ME disc, or the NUSB pack, before installing this driver.
 This project does not distribute Microsoft files.
 
-## License
+## License & Acknowledgement
 
-GPL-2.0-or-later; see `COPYING`. The protocol implementation is derived from
-`drivers/usb/storage/datafab.c` in the Linux kernel, (c) 2000 Jimmie Mayfield
-and (c) 2002 Alan Stern.
+Released under GPL-2.0-or-later; see `COPYING`.
+
+The protocol implementation is derived from `drivers/usb/storage/datafab.c` in
+the Linux kernel, (c) 2000 Jimmie Mayfield and (c) 2002 Alan Stern.
