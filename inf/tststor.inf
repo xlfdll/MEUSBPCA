@@ -1,0 +1,71 @@
+; SPDX-License-Identifier: GPL-2.0-or-later
+;
+; Test aid for Windows 98 Second Edition: installs the Windows Me USB storage
+; stack (USBSTOR.SYS with USBNTMAP.SYS above it) for an ordinary USB flash
+; drive, without the MEUSBPCA filter. If a flash drive works with this INF and
+; MEUSB9XD.INF, the Windows Me files are healthy on the system and any
+; remaining problem is in the MEUSBPCA filter.
+;
+; Needs USBSTOR.SYS and USBNTMAP.SYS next to this INF (see GETMEFIL.BAT).
+
+[Version]
+Signature="$CHICAGO$"
+Class=USB
+ClassGUID={36FC9E60-C465-11CF-8056-444553540000}
+Provider=%Provider%
+LayoutFile=layout.inf, layout1.inf, layout2.inf
+DriverVer=10/04/2026,0.2.2.0
+
+[Manufacturer]
+%Manufacturer%=Models
+
+[Models]
+%DeviceName%=Install, USB\Class_08&SubClass_06&Prot_50
+%DeviceName%=Install, USB\Class_08&SubClass_05&Prot_50
+%DeviceName%=Install, USB\Class_08&SubClass_02&Prot_50
+
+[SourceDisksNames]
+1=%DiskName%,,
+
+[SourceDisksFiles]
+meusb9xd.inf=1
+
+[DestinationDirs]
+DefaultDestDir=10,System32\Drivers
+PortDriver.CopyFiles=12
+DiskInf.CopyFiles=17
+
+[Install]
+CopyFiles=UsbStor.CopyFiles, PortDriver.CopyFiles, DiskInf.CopyFiles
+AddReg=Install.AddReg
+
+[UsbStor.CopyFiles]
+USBSTOR.SYS
+USBNTMAP.SYS
+
+; The disk USBSTOR.SYS reports is a separate device. On Windows 98SE its
+; driver information must already be in place when the disk appears, or
+; Windows installs the disk with its own NTMAP.INF, which belongs to a
+; different mapper and crashes with this one.
+[PortDriver.CopyFiles]
+USBMPHLP.PDR
+
+[DiskInf.CopyFiles]
+meusb9xd.inf
+
+[Install.AddReg]
+HKR,,DevLoader,,*NTKERN
+HKR,,NTMPDriver,,USBSTOR.SYS
+HKR,,DriverFlags,0x00010001,0x00000001
+
+[Install.HW]
+AddReg=Install.HW.AddReg
+
+[Install.HW.AddReg]
+HKR,,UpperFilters,0,"USBNTMAP.SYS"
+
+[Strings]
+Provider="Xlfdll Workstation"
+Manufacturer="Toshiba"
+DeviceName="USB Mass Storage Device (Windows Me stack test)"
+DiskName="MEUSBPCA driver disk"

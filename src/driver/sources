@@ -1,0 +1,12 @@
+TARGETNAME=meusbpca
+TARGETTYPE=DRIVER
+DRIVERTYPE=WDM
+TARGETPATH=obj
+
+SOURCES=filter.c core.c
+
+# The DDK adds /GS stack checks by default, which makes the driver import
+# KeTickCount. To build without them: set MEUSBPCA_NO_GS=1, then build -cZ
+!IF "$(MEUSBPCA_NO_GS)" == "1"
+BUFFER_OVERFLOW_CHECKS=0
+!ENDIF

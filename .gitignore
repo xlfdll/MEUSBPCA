@@ -1,4 +1,4 @@
 build/
 *.img
-driver/obj*/
+src/driver/obj*/
 *.obj

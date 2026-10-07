@@ -233,13 +233,16 @@ static int do_mode_sense(df_scsi *s, const df_u8 *cdb, int ten,
     df_u32 alloc = ten ? get_be16(cdb + 7) : cdb[4];
     df_u8 wp = (df_u8)(s->read_only ? 0x80 : 0x00);
 
-    if (page != 0x08 && page != 0x3F)
+    if (page != 0x00 && page != 0x08 && page != 0x3F)
         return check(s, SK_ILLEGAL_REQUEST, 0x24, 0x00);
 
+    /* Page 0 is asked for just to read the write-protect bit in the header. */
     mem_set(resp, 0, sizeof(resp));
-    resp[len] = 0x08;               /* caching page, write cache off */
-    resp[len + 1] = 0x12;
-    len += 20;
+    if (page != 0x00) {
+        resp[len] = 0x08;           /* caching page, write cache off */
+        resp[len + 1] = 0x12;
+        len += 20;
+    }
 
     if (ten) {
         resp[1] = (df_u8)(len - 2);

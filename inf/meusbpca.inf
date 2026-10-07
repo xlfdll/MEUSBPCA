@@ -1,0 +1,76 @@
+; SPDX-License-Identifier: GPL-2.0-or-later
+;
+; Toshiba MEUSBPCA USB to PC Card Adapter (DataFab DF-USB01)
+; Windows 2000 and later (32-bit). For Windows 98SE and ME use meusb9x.inf.
+;
+; Binds Microsoft's usbstor.sys to the adapter by VID/PID, forces Bulk-Only
+; transport, and puts meusbpca.sys beneath it as a lower filter. usbstor.sys
+; itself is installed through Microsoft's own usbstor.inf.
+;
+; Tested on Windows 2000 and Windows XP.
+
+[Version]
+Signature="$Windows NT$"
+Class=USB
+ClassGUID={36FC9E60-C465-11CF-8056-444553540000}
+Provider=%Provider%
+DriverVer=10/04/2026,0.2.1.0
+
+[Manufacturer]
+%Manufacturer%=Models
+
+[Models]
+%DeviceName%=Install, USB\VID_07C4&PID_A006
+
+[SourceDisksNames]
+1=%DiskName%
+
+[SourceDisksFiles]
+meusbpca.sys=1
+
+[DestinationDirs]
+DefaultDestDir=10,System32\Drivers
+
+[Filter.CopyFiles]
+meusbpca.sys
+
+
+; ---- Windows 2000 and later ----
+
+; Microsoft's own usbstor.inf installs usbstor.sys and its service; Windows
+; only puts that driver in place when the first USB storage device is set up.
+[Install.NT]
+Include=usbstor.inf
+Needs=USBSTOR_BULK.NT
+CopyFiles=Filter.CopyFiles
+AddReg=Install.NT.AddReg
+
+[Install.NT.AddReg]
+HKR,,DriverFlags,0x00010001,0x00000001
+; The adapter reports a different serial number on every plug-in, which makes
+; Windows treat it as new hardware each time. Ignore the serial number.
+HKLM,SYSTEM\CurrentControlSet\Control\UsbFlags,IgnoreHWSerNum07C4A006,0x00000001,01
+
+[Install.NT.HW]
+AddReg=Install.NT.HW.AddReg
+
+[Install.NT.HW.AddReg]
+HKR,,LowerFilters,0x00010000,meusbpca
+
+[Install.NT.Services]
+Include=usbstor.inf
+Needs=USBSTOR_BULK.NT.Services
+AddService=meusbpca,,Filter.Service
+
+[Filter.Service]
+DisplayName=%DeviceName%
+ServiceType=1
+StartType=3
+ErrorControl=1
+ServiceBinary=%12%\meusbpca.sys
+
+[Strings]
+Provider="Xlfdll Workstation"
+Manufacturer="Toshiba"
+DeviceName="Toshiba MEUSBPCA USB to PC Card Adapter"
+DiskName="MEUSBPCA driver disk"

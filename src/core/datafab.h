@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
- * DataFab DF-USB01 vendor protocol (Toshiba MEUSBPCA USB to PC Card adapter).
+ * DataFab DF-USB01 vendor protocol (Toshiba MEUSBPCA USB to PC Card Adapter).
  *
  * Portable C89, no OS headers: shared by the WDM filter driver, the iSCSI
  * service, the command-line tool and the host tests.

@@ -44,4 +44,4 @@ HKR,,DeviceInterfaceGUIDs,0x00010000,"{6C3F2A91-5B7E-4D0A-9E44-07C4A0060001}"
 [Strings]
 Provider="MEUSBPCA project"
 Manufacturer="Toshiba"
-DeviceName="Toshiba MEUSBPCA USB to PC Card adapter"
+DeviceName="Toshiba MEUSBPCA USB to PC Card Adapter"

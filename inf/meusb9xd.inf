@@ -1,0 +1,46 @@
+; SPDX-License-Identifier: GPL-2.0-or-later
+;
+; Disk exposed by USBSTOR.SYS on Windows 98 Second Edition.
+;
+; Windows 98SE has no USB storage support, so nothing there claims the disk
+; that USBSTOR.SYS reports. This does what Windows Me's own USBNTMAP.INF does:
+; it hands the disk to the I/O supervisor through USBMPHLP.PDR.
+;
+; Installed into Windows' INF folder by MEUSB9X.INF. USBMPHLP.PDR is a Windows
+; Me file; GETMEFIL.BAT extracts it from a Windows Me CD. This package ships no
+; Microsoft files.
+
+[Version]
+Signature="$CHICAGO$"
+Class=Storage
+Provider=%Provider%
+DriverVer=10/04/2026,0.2.2.0
+
+[ClassInstall]
+AddReg=StorageClassReg
+
+[StorageClassReg]
+HKR,,,,%StorageClassName%
+HKR,,Icon,,-9
+
+[Manufacturer]
+%Manufacturer%=Models
+
+[Models]
+%DiskDeviceName%=Disk.Install, USBSTOR\GenDisk
+
+; USBMPHLP.PDR is copied by the adapter's INF, so that this one can be applied
+; without asking for a disk.
+[Disk.Install]
+AddReg=Disk.AddReg
+
+[Disk.AddReg]
+HKR,,DevLoader,,*IOS
+HKR,,PortDriver,,USBMPHLP.PDR
+HKR,,PreloadDrivers,,""
+
+[Strings]
+Provider="Xlfdll Workstation"
+Manufacturer="Generic"
+StorageClassName="Storage device"
+DiskDeviceName="USB Disk"

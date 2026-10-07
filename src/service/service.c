@@ -105,7 +105,7 @@ int service_install(const app_options *opt)
                 "Administrator rights are required.\n", GetLastError());
         return 1;
     }
-    svc = CreateServiceA(scm, SERVICE_NAME, "MEUSBPCA PC Card adapter", SERVICE_ALL_ACCESS,
+    svc = CreateServiceA(scm, SERVICE_NAME, "MEUSBPCA PC Card Adapter", SERVICE_ALL_ACCESS,
                          SERVICE_WIN32_OWN_PROCESS, SERVICE_AUTO_START, SERVICE_ERROR_NORMAL,
                          command, NULL, NULL, "MSiSCSI\0", NULL, NULL);
     if (!svc) {

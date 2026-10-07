@@ -19,21 +19,21 @@ if not exist "%VCToolsInstallDir%lib\%ARCH%\libcmt.lib" echo The Visual Studio C
 set OUT=%~dp0build\%ARCH%
 if not exist "%OUT%" mkdir "%OUT%"
 set CFLAGS=/nologo /W4 /WX /O2 /MT /D_CRT_SECURE_NO_WARNINGS /Fo"%OUT%\\"
-set CORE=%~dp0core\datafab.c %~dp0core\scsi.c %~dp0core\bot.c
+set CORE=%~dp0src\core\datafab.c %~dp0src\core\scsi.c %~dp0src\core\bot.c
 
-cl %CFLAGS% /Fe"%OUT%\test_core.exe" %CORE% %~dp0tests\fake_device.c %~dp0tests\test_core.c || exit /b 1
+cl %CFLAGS% /Fe"%OUT%\test_core.exe" %CORE% %~dp0src\tests\fake_device.c %~dp0src\tests\test_core.c || exit /b 1
 rem A cross-compiled test program cannot run on the build machine.
 if /i "%ARCH%"=="arm64" if /i not "%PROCESSOR_ARCHITECTURE%"=="ARM64" goto :skip_tests
 "%OUT%\test_core.exe" || exit /b 1
 :skip_tests
 
-if exist "%~dp0tool\cli.c" (
-    cl %CFLAGS% /Fe"%OUT%\meusbpca.exe" %CORE% %~dp0service\winusb_io.c %~dp0tool\cli.c ^
+if exist "%~dp0src\tool\cli.c" (
+    cl %CFLAGS% /Fe"%OUT%\meusbpca.exe" %CORE% %~dp0src\service\winusb_io.c %~dp0src\tool\cli.c ^
         /link winusb.lib setupapi.lib user32.lib || exit /b 1
 )
-if exist "%~dp0service\main.c" (
-    cl %CFLAGS% /Fe"%OUT%\meusbpca-svc.exe" %CORE% %~dp0service\winusb_io.c %~dp0service\iscsi.c ^
-        %~dp0service\initiator.c %~dp0service\service.c %~dp0service\main.c %~dp0tests\fake_device.c ^
+if exist "%~dp0src\service\main.c" (
+    cl %CFLAGS% /Fe"%OUT%\meusbpca-svc.exe" %CORE% %~dp0src\service\winusb_io.c %~dp0src\service\iscsi.c ^
+        %~dp0src\service\initiator.c %~dp0src\service\service.c %~dp0src\service\main.c %~dp0src\tests\fake_device.c ^
         /link winusb.lib setupapi.lib user32.lib ws2_32.lib advapi32.lib || exit /b 1
 )
 echo The build has completed: %OUT%

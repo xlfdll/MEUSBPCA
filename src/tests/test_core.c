@@ -189,6 +189,13 @@ static void test_scsi(void)
     CHECK(df_scsi_exec(&scsi, cdb, buf, sizeof(buf), &n) == DF_SCSI_GOOD);
     CHECK(n == 24 && buf[0] == 23 && buf[2] == 0x00 && buf[4] == 0x08);
 
+    /* MODE SENSE(10), page 0: header only. */
+    memset(cdb, 0, sizeof(cdb));
+    cdb[0] = 0x5A;
+    cdb[8] = 12;
+    CHECK(df_scsi_exec(&scsi, cdb, buf, sizeof(buf), &n) == DF_SCSI_GOOD);
+    CHECK(n == 8 && buf[1] == 6 && buf[3] == 0x00);
+
     /* Card swapped: reported once, then the new card is used. */
     fake_set_serial(&fake, "SERIAL-B");
     memset(cdb, 0, sizeof(cdb));
