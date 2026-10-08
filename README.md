@@ -8,44 +8,28 @@ The adapter only speaks ATA, so it works with ATA flash cards, PC Card hard
 drives and CompactFlash cards in a PC Card sleeve. Modems, network cards and
 linear memory cards cannot work with it.
 
-## Current Status
-
-| Part | Tested on | What was tested |
-|---|---|---|
-| `meusbpca.exe` command-line imaging tool | Windows 10 x64, Windows 11 x64 | Identifying a card, reading a whole card, writing a whole card |
-| `meusbpca-svc.exe` drive-letter service (iSCSI) | Windows 10 x64, Windows 11 x64 | Reading and writing files through the drive letter, read-only mode, card removal and insertion |
-| `meusbpca.sys` kernel filter driver | Windows 98SE, Windows ME, Windows 2000, Windows XP, Windows XP x64, Windows 7 32-bit (in VMware) | Installing, reading, copying and deleting files, eject and reconnect |
-| `src/core/` protocol library | x86 and x64 builds | Host tests against a simulated adapter |
-
 ## Platform Support
 
-| Windows | Form | Prerequisites |
+| Form | Tested on | Potentially Support |
 |---|---|---|
-| 98SE | Kernel filter driver (`meusbpca.sys`) | Two files from a Windows ME disc and one from NUSB 3.3 |
-| ME, 2000, XP | Kernel filter driver (`meusbpca.sys`) | None |
-| XP x64 | Kernel filter driver (64-bit build of `meusbpca.sys`) | None |
-| Vista, 7, 8, 8.1 (32-bit) | Kernel filter driver (`meusbpca.sys`) | None |
-| Vista, 7, 8, 8.1 (64-bit) | iSCSI service (`meusbpca-svc.exe`) | WinUSB bound with Zadig |
-| 10, 11 (x86, x64) | iSCSI service (`meusbpca-svc.exe`) | WinUSB bound with Zadig |
-| 11 (ARM64) | iSCSI service (`meusbpca-svc.exe`) | WinUSB selected by hand in Device Manager |
-
-The `meusbpca.exe` imaging tool runs on Vista and later, with the same WinUSB
-prerequisite as the service.
+| Kernel filter driver (`meusbpca.sys`) | Windows 98SE, ME, 2000, XP, XP x64, 7 32-bit | Windows Vista 32-bit; 8, 8.1 and 10 32-bit with Secure Boot off |
+| iSCSI service and imaging tool (`meusbpca-svc.exe`, `meusbpca.exe`) | Windows 10 x64, 11 x64 | Windows Vista, 7, 8 and 8.1 (32-bit and x64), 10 32-bit, 11 ARM64 |
 
 ### Why Two Forms
 
-The split follows Windows' kernel driver signing rules.
+The split follows Windows'
+[kernel driver signing rules](https://learn.microsoft.com/en-us/windows-hardware/drivers/install/kernel-mode-code-signing-policy--windows-vista-and-later-).
 
 - **Kernel filter driver** where Windows loads an unsigned kernel driver: 98SE,
-  ME, 2000, XP (including XP x64) and 32-bit Vista through 8.1. A filter under
-  Microsoft's own USB storage driver is the most direct route there, and those
-  older systems have neither WinUSB nor an iSCSI initiator built in.
+  ME, 2000, XP (including XP x64), and 32-bit Windows from Vista on as long as
+  Secure Boot is not in use. A filter under Microsoft's own USB storage driver
+  is the most direct route there, and the systems before Vista have neither
+  WinUSB nor an iSCSI initiator built in.
 - **iSCSI service** where a kernel driver must be signed: 64-bit Windows from
-  Vista on, and ARM64. Windows 10 and 11 go further and require the signature
-  to come from Microsoft. The service avoids the requirement entirely: it runs
-  in user mode on top of two drivers Microsoft already ships and signs, WinUSB
-  and the iSCSI initiator, so it installs with Secure Boot on. Windows 10 and
-  11 use the service on every architecture.
+  Vista on, and any Windows 8 or later with Secure Boot on, 32-bit included.
+  From Windows 10 version 1607 the signature has to come from Microsoft. The
+  service avoids the requirement entirely: it runs in user mode on top of two
+  drivers Microsoft already ships and signs, WinUSB and the iSCSI initiator.
 
 ### How It Works
 
@@ -147,19 +131,20 @@ distribute them:
 
 | File | Source |
 |---|---|
-| `USBSTOR.SYS`, `USBNTMAP.SYS` | A Windows ME disc |
+| `USBSTOR.SYS`, `USBNTMAP.SYS` | The NUSB 3.3 package, or a Windows ME disc |
 | `USBMPHLP.PDR` | The NUSB 3.3 package, which carries a copy patched for 98SE |
 
 NUSB 3.3 (`nusb33e.exe`) is available from
 [Phil's Computer Lab](https://www.philscomputerlab.com/windows-98-usb-storage-driver.html).
-Open it with an archive tool such as 7-Zip and take `USBMPHLP.PDR` out; the
+Open it with an archive tool such as 7-Zip and take the files out; the
 installer itself is for English Windows 98SE only.
 
 1. Copy the 32-bit `meusbpca.sys` into `inf\`.
-2. From a command prompt in `inf\`, with the Windows ME disc in drive D:, run
-   `..\utils\getmefil.bat D:`. It extracts `USBSTOR.SYS` and `USBNTMAP.SYS`.
-3. Copy `USBMPHLP.PDR` from NUSB 3.3 into `inf\`.
-4. Plug the adapter in and point the hardware wizard at `inf\`. It uses
+2. Copy `USBSTOR.SYS`, `USBNTMAP.SYS` and `USBMPHLP.PDR` from NUSB 3.3 into
+   `inf\`. The first two can instead be extracted from a Windows ME disc: from
+   a command prompt in `inf\`, with the disc in drive D:, run
+   `..\utils\getmefil.bat D:`.
+3. Plug the adapter in and point the hardware wizard at `inf\`. It uses
    `meusb9x.inf` for the adapter and `meusb9xd.inf` for the disk behind it.
 
 On 98SE and ME, Windows installs the adapter again each time it is plugged in,

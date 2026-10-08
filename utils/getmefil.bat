@@ -26,7 +26,9 @@ echo   GETMEFIL drive:    Extract USBSTOR.SYS and USBNTMAP.SYS from the Windows
 echo                      Me CD in that drive, for example GETMEFIL D:
 echo.
 echo Run it from the folder that holds MEUSB9X.INF. Windows 98 Second Edition
-echo also needs USBMPHLP.PDR from the NUSB 3.3 package in that folder.
+echo also needs USBMPHLP.PDR from the NUSB 3.3 package in that folder. That
+echo package contains USBSTOR.SYS and USBNTMAP.SYS as well, so with it this
+echo extractor is not needed.
 goto end
 
 :nocabs
