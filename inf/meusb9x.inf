@@ -7,13 +7,17 @@
 ; transport, puts USBNTMAP.SYS above it as Windows Me does, and meusbpca.sys
 ; beneath it as a lower filter.
 ;
-; USBSTOR.SYS and USBNTMAP.SYS are Windows Me files:
+; USBSTOR.SYS, USBNTMAP.SYS and USBMPHLP.PDR are Windows Me files:
 ;   - On Windows Me, Setup finds them in Windows' own installation files.
-;   - On Windows 98SE, put them and USBMPHLP.PDR next to this INF first;
-;     GETMEFIL.BAT extracts all three from a Windows Me CD. This INF also
-;     installs MEUSB9XD.INF, which Windows then uses for the disk the adapter
-;     exposes.
+;   - On Windows 98SE, put all three next to this INF first. GETMEFIL.BAT
+;     extracts USBSTOR.SYS and USBNTMAP.SYS from a Windows Me CD.
+;     USBMPHLP.PDR must be the patched copy from the NUSB 3.3 package; the
+;     Windows Me original does not start the disk on Windows 98SE. This INF
+;     also installs MEUSB9XD.INF, which Windows then uses for the disk the
+;     adapter exposes.
 ; This package ships no Microsoft files.
+;
+; Tested on Windows Me and Windows 98SE.
 
 [Version]
 Signature="$CHICAGO$"

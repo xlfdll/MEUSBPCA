@@ -14,14 +14,14 @@ linear memory cards cannot work with it.
 |---|---|---|
 | `meusbpca.exe` command-line imaging tool | Windows 10 x64, Windows 11 x64 | Identifying a card, reading a whole card, writing a whole card |
 | `meusbpca-svc.exe` drive-letter service (iSCSI) | Windows 10 x64, Windows 11 x64 | Reading and writing files through the drive letter, read-only mode, card removal and insertion |
-| `meusbpca.sys` kernel filter driver | Windows 2000, Windows XP (in VMware) | Installing, reading, copying and deleting files, eject and reconnect |
+| `meusbpca.sys` kernel filter driver | Windows 98SE, Windows ME, Windows 2000, Windows XP, Windows XP x64, Windows 7 32-bit (in VMware) | Installing, reading, copying and deleting files, eject and reconnect |
 | `src/core/` protocol library | x86 and x64 builds | Host tests against a simulated adapter |
 
 ## Platform Support
 
 | Windows | Form | Prerequisites |
 |---|---|---|
-| 98SE | Kernel filter driver (`meusbpca.sys`) | Windows ME USB storage files, or NUSB |
+| 98SE | Kernel filter driver (`meusbpca.sys`) | Two files from a Windows ME disc and one from NUSB 3.3 |
 | ME, 2000, XP | Kernel filter driver (`meusbpca.sys`) | None |
 | XP x64 | Kernel filter driver (64-bit build of `meusbpca.sys`) | None |
 | Vista, 7, 8, 8.1 (32-bit) | Kernel filter driver (`meusbpca.sys`) | None |
@@ -75,11 +75,22 @@ follows the Linux `usb-storage` DataFab subdriver.
 | Kernel filter, x64 | XP x64 | Windows Server 2003 SP1 DDK, x64 build environment | `build -cZ` in `src\driver\` |
 
 `build.cmd` also builds and runs the core tests, and puts `meusbpca.exe` and
-`meusbpca-svc.exe` in `build\<arch>\`.
+`meusbpca-svc.exe` in `build\<arch>\`. The DDK build leaves `meusbpca.sys` in a
+folder under `src\driver\` named after the build environment.
+
+| Folder | Contents |
+|---|---|
+| `src\core\` | Protocol library shared by everything |
+| `src\driver\` | Kernel filter driver and its DDK build files |
+| `src\service\` | iSCSI service |
+| `src\tool\` | Command-line imaging tool |
+| `src\tests\` | Core tests and the simulated adapter |
+| `inf\` | Driver installation files |
+| `utils\` | Windows ME file extractor and driver uninstall scripts |
 
 ## Platform Notes
 
-### Windows Vista and Later
+### 64-bit Vista through 8.1, Windows 10 and 11
 
 1. Bind the adapter to WinUSB. Run [Zadig](https://zadig.akeo.ie), select
    **USB To PCMCIA** (`07C4 A006`), choose **WinUSB** and install.
@@ -110,12 +121,49 @@ follows the Linux `usb-storage` DataFab subdriver.
 
 Eject the drive in Explorer before pulling a card you have written to.
 
+### Windows 2000, XP and 32-bit Vista through 8.1
+
+1. Copy the `meusbpca.sys` built for the system into `inf\`: the 32-bit build,
+   or the 64-bit build for XP x64.
+2. Plug the adapter in and point the hardware wizard at `inf\`. It uses
+   `meusbpca.inf`. Windows warns that the driver is not signed.
+
+Windows installs the adapter a second time after the first restart, without
+asking for anything. The adapter reports a different serial number each time
+it is plugged in, and the driver tells Windows to identify it by its USB port
+instead; that takes effect at the first restart.
+
+### Windows ME
+
+1. Copy the 32-bit `meusbpca.sys` into `inf\`.
+2. Plug the adapter in and point the hardware wizard at `inf\`. It uses
+   `meusb9x.inf`.
+
 ### Windows 98SE
 
-98SE has no generic USB storage driver. The kernel filter relies on the
-Windows ME one: install `USBSTOR.SYS`, `USBNTMAP.SYS`, `USBMPHLP.PDR` and their
-INFs from a Windows ME disc, or the NUSB pack, before installing this driver.
-This project does not distribute Microsoft files.
+98SE has no USB storage driver of its own, so the filter runs under the
+Windows ME one. Three Microsoft files are needed, and this project does not
+distribute them:
+
+| File | Source |
+|---|---|
+| `USBSTOR.SYS`, `USBNTMAP.SYS` | A Windows ME disc |
+| `USBMPHLP.PDR` | The NUSB 3.3 package, which carries a copy patched for 98SE |
+
+NUSB 3.3 (`nusb33e.exe`) is available from
+[Phil's Computer Lab](https://www.philscomputerlab.com/windows-98-usb-storage-driver.html).
+Open it with an archive tool such as 7-Zip and take `USBMPHLP.PDR` out; the
+installer itself is for English Windows 98SE only.
+
+1. Copy the 32-bit `meusbpca.sys` into `inf\`.
+2. From a command prompt in `inf\`, with the Windows ME disc in drive D:, run
+   `..\utils\getmefil.bat D:`. It extracts `USBSTOR.SYS` and `USBNTMAP.SYS`.
+3. Copy `USBMPHLP.PDR` from NUSB 3.3 into `inf\`.
+4. Plug the adapter in and point the hardware wizard at `inf\`. It uses
+   `meusb9x.inf` for the adapter and `meusb9xd.inf` for the disk behind it.
+
+On 98SE and ME, Windows installs the adapter again each time it is plugged in,
+without asking for anything.
 
 ### VMware Workstation
 

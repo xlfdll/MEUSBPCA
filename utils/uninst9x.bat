@@ -21,7 +21,6 @@ echo The driver file MEUSBPCA.SYS has been removed.
 
 rem Windows keeps third-party INFs in INF\OTHER, with the provider's name in front.
 if exist %windir%\INF\OTHER\*MEUSB9X.INF del %windir%\INF\OTHER\*MEUSB9X.INF
-if exist %windir%\INF\OTHER\*TSTSTOR.INF del %windir%\INF\OTHER\*TSTSTOR.INF
 if exist %windir%\INF\MEUSB9XD.INF del %windir%\INF\MEUSB9XD.INF
 echo The cached setup files have been removed.
 

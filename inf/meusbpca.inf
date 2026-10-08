@@ -1,25 +1,31 @@
 ; SPDX-License-Identifier: GPL-2.0-or-later
 ;
 ; Toshiba MEUSBPCA USB to PC Card Adapter (DataFab DF-USB01)
-; Windows 2000 and later (32-bit). For Windows 98SE and ME use meusb9x.inf.
+; Windows 2000 and later, 32-bit, and Windows XP x64. Put the meusbpca.sys
+; built for the system next to this file. For Windows 98SE and ME use
+; meusb9x.inf.
 ;
 ; Binds Microsoft's usbstor.sys to the adapter by VID/PID, forces Bulk-Only
 ; transport, and puts meusbpca.sys beneath it as a lower filter. usbstor.sys
 ; itself is installed through Microsoft's own usbstor.inf.
 ;
-; Tested on Windows 2000 and Windows XP.
+; Tested on Windows 2000, Windows XP, Windows XP x64 and Windows 7 (32-bit).
 
 [Version]
 Signature="$Windows NT$"
 Class=USB
 ClassGUID={36FC9E60-C465-11CF-8056-444553540000}
 Provider=%Provider%
-DriverVer=10/04/2026,0.2.1.0
+DriverVer=10/09/2026,0.2.4.0
 
+; 64-bit Windows only reads a models section marked for its architecture.
 [Manufacturer]
-%Manufacturer%=Models
+%Manufacturer%=Models,NTamd64
 
 [Models]
+%DeviceName%=Install, USB\VID_07C4&PID_A006
+
+[Models.NTamd64]
 %DeviceName%=Install, USB\VID_07C4&PID_A006
 
 [SourceDisksNames]
@@ -68,6 +74,19 @@ ServiceType=1
 StartType=3
 ErrorControl=1
 ServiceBinary=%12%\meusbpca.sys
+
+; Optional: right-click this file and choose Install before plugging the
+; adapter in for the first time. That sets the serial number override ahead of
+; time, so Windows identifies the adapter by its port from the start and does
+; not install it a second time after the first restart.
+[DefaultInstall.NT]
+AddReg=SerialOverride.AddReg
+
+[DefaultInstall.NTamd64]
+AddReg=SerialOverride.AddReg
+
+[SerialOverride.AddReg]
+HKLM,SYSTEM\CurrentControlSet\Control\UsbFlags,IgnoreHWSerNum07C4A006,0x00000001,01
 
 [Strings]
 Provider="Xlfdll Workstation"

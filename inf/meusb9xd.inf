@@ -6,9 +6,9 @@
 ; that USBSTOR.SYS reports. This does what Windows Me's own USBNTMAP.INF does:
 ; it hands the disk to the I/O supervisor through USBMPHLP.PDR.
 ;
-; Installed into Windows' INF folder by MEUSB9X.INF. USBMPHLP.PDR is a Windows
-; Me file; GETMEFIL.BAT extracts it from a Windows Me CD. This package ships no
-; Microsoft files.
+; Installed into Windows' INF folder by MEUSB9X.INF. USBMPHLP.PDR must be the
+; patched copy from the NUSB 3.3 package; the Windows Me original does not
+; start the disk on Windows 98SE. This package ships no Microsoft files.
 
 [Version]
 Signature="$CHICAGO$"
